@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "ts-node src/index.ts",
     "build": "tsc",
     "convert": "npx tsc && node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -13,11 +12,11 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "lodash": "^4.17.21",
-    "typescript": "^5.8.3"
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@types/lodash": "^4.17.20",
-    "@types/node": "^24.0.12"
+    "@types/node": "^24.0.12",
+    "typescript": "^5.8.3"
   }
 }

@@ -2,10 +2,19 @@ import * as fs from "fs";
 import * as path from "path";
 import { camelCase, upperFirst } from "lodash";
 
+const args = process.argv.slice(2);
+
+if (args.length === 0) {
+  console.log("Usage: npm run convert <json-file-path> [output-directory] [root-dto-name]");
+  console.log("Example: npm run convert ./example.json ./generated-dtos RootDto");
+  process.exit(1);
+}
+
+const jsonFilePath = args[0];
+const outputDir = args[1] || "./dist/generated-dtos";
+const rootDtoName = args[2] || "RootDto";
+
 // Configuration
-const inputJsonPath = "./input.json";
-const outputDir = "./dtos";
-// const outputDir = "../template/src/dtos";
 const indent = "  ";
 
 // Type mappings for class-validator
@@ -23,7 +32,8 @@ if (!fs.existsSync(outputDir)) {
 }
 
 // Read and parse JSON file
-const jsonData = JSON.parse(fs.readFileSync(inputJsonPath, "utf-8"));
+console.log(`Reading JSON file: ${jsonFilePath}`);
+const jsonData = JSON.parse(fs.readFileSync(jsonFilePath, "utf-8"));
 
 // Interface for DTO property
 interface DtoProperty {
@@ -176,25 +186,17 @@ function processJsonProperties(
 function generateDtoFiles(data: any, mainClassName: string) {
   // const { props, nestedDtos } = processJsonProperties(data, mainClassName);
   const { props, nestedDtos } = processJsonProperties(data);
+  console.log(`Found ${nestedDtos.size} classes to generate`);
 
-  // Generate main DTO
-  const mainDtoContent = generateDtoClass(mainClassName, props);
-  fs.writeFileSync(
-    // path.join(outputDir, `${camelCase(mainClassName)}.dto.ts`),
-    path.join(outputDir, `${mainClassName}.dto.ts`),
-    mainDtoContent
-  );
-
+  console.log("\nGenerated files:");
   // Generate nested DTOs
+  nestedDtos.set(mainClassName, props);
   nestedDtos.forEach((nestedProps, nestedClassName) => {
     const nestedDtoContent = generateDtoClass(nestedClassName, nestedProps);
-    fs.writeFileSync(
-      // path.join(outputDir, `${camelCase(nestedClassName)}.dto.ts`),
-      path.join(outputDir, `${nestedClassName}.dto.ts`),
-      nestedDtoContent
-    );
+    const targetFilePath = path.join(outputDir, `${nestedClassName}.dto.ts`);
+    console.log(`  - ${nestedClassName} -> ${targetFilePath}`);
+    fs.writeFileSync(targetFilePath, nestedDtoContent);
   });
 }
 
-// Example usage
-generateDtoFiles(jsonData, "AppConnectionInfo");
+generateDtoFiles(jsonData, rootDtoName);
